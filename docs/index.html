@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html manifest="cache.manifest">
+	<head>
+		<meta charset="utf-8" />
+		<title id="title">StrainFinder</title>
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+		<meta name="viewport" content="user-scalable=no, width=device-width" />
+		<meta name="apple-mobile-web-app-title" content="StrainFinder" />
+		<link rel="icon" type="image/x-icon" href="favicon.ico" />
+		<link rel="manifest" href="manifest.webmanifest" />
+		<link rel="canonical" href="https://maxvalue.github.io/Terpene-Profile-Parser-for-Cannabis-Strains/" />
+		<meta property="og:url" content="https://maxvalue.github.io/Terpene-Profile-Parser-for-Cannabis-Strains/" />
+		<meta property="og:title" id="ogtitle" content="StrainFinder" />
+		<meta property="og:description" content="Compare terpene profiles of cannabis strains using lab test data. Find out which compounds of your favourite strain affect your body." />
+		<meta property="og:image" content="https://maxvalue.github.io/Terpene-Profile-Parser-for-Cannabis-Strains/img/opengraph-icon-1200x1200.png" />
+		<link rel="apple-touch-icon" sizes="120x120" href="img/apple-touch-icon-120x120.png" />
+		<link rel="apple-touch-icon" sizes="152x152" href="img/apple-touch-icon-152x152.png" />
+		<link rel="apple-touch-icon" sizes="167x167" href="img/apple-touch-icon-167x167.png" />
+		<link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon-180x180.png" />
+		<link rel="apple-touch-icon" sizes="1200x1200" href="img/apple-touch-icon.png" />
+		<link rel="apple-touch-icon" href="img/apple-touch-icon.png" />
+		<link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet" />
+		<script id="jsonloader" type="text/javascript" src="results.json"></script>
+		<style type="text/css">
+			html {
+				font-family: 'Roboto', sans-serif;
+			}
+			#searchwrapper {
+				float: left;
+				margin-right: 5.6px;
+			}
+			#sampleTypes, #databases {
+				list-style-type: none;
+				padding-left: 0;
+			}
+			#results {
+				white-space: nowrap;
+			}
+			#results,#results td,#results tr {
+				border: 1px solid black;
+				border-collapse: collapse;
+			}
+			#results thead {
+				background-color: rgb(222,222,222);
+				text-align: center;
+			}
+			.graphcell {
+				width: 99%;
+			}
+			#about {
+				clear: left;
+			}
+			#appversion {
+				margin-left: 20px;
+				float: right;
+				color: #C7C7CC;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="GUI">
+			<div id="searchwrapper">
+				<form id="searchform" action="." onsubmit="return load_sample_data(this);">
+					<input type="submit" value="Search"><br>
+
+					<label for="search">Strain Name:</label>
+					<input type="search" name="q" id="search" inputmode="search" placeholder="Chocolope" autofocus="" oninput="resetResults()"><br>
+					<label for="exactmatch">Exact Match?</label>
+					<input type="checkbox" name="exact" id="exactmatch" value="1" onchange="resetResults()">
+
+					<div>
+						<fieldset>
+							<legend>Sample Types:</legend>
+							<ul id="sampleTypes" onchange="updateTypeCheckboxes()">
+							</ul>
+						</fieldset>
+					</div>
+					<div>
+						<fieldset>
+							<legend>Databases:</legend>
+							<ul id="databases" onchange="updateDatabaseCheckboxes()">
+							</ul>
+							<input type="file" name="fileUploader" accept="application/json, .json, .JSON" onchange="return changeHandler(this.files);">
+						</fieldset>
+					</div>
+					<input type="submit" value="Search">
+				</form>
+			</div>
+			<div id="resultswrapper">
+				<table id="results">
+					<caption></caption>
+					<thead>
+						<tr>
+						</tr>
+					</thead>
+					<tbody>
+					</tbody>
+				</table>
+			</div>
+			<div id="about">
+				<a id="infolink" href="https://github.com/MaxValue/Terpene-Profile-Parser-for-Cannabis-Strains#terpene-profile-parser-for-cannabis-strains">Learn more about this project here</a>.</span>
+				<span id="appversion">v2018-10-22T15:20:00+02:00/009</span>
+			</div>
+		</div>
+	</body>
+	<script type="text/javascript">
+		/*
+		TODO:
+			mobile friendly
+			simple
+			most relevant to least relevant
+
+			big search field
+			terpenes sort by most important ones
+		*/
+		var terpenes = [
+			{
+				name: 'Terpinolene',
+				color: 0xB00000, // dark red
+				boilingPoint: NaN,
+				onsetTime: 0
+			},
+			{
+				name: 'beta-Ocimene',
+				color: 0xFF6519, // orange
+				boilingPoint: NaN,
+				onsetTime: 0
+			},
+			{
+				name: '3-Carene',
+				color: 0xFF8C1A, // brighter orange
+				boilingPoint: 168.0,
+				onsetTime: 0
+			},
+			{
+				name: 'delta-Limonene',
+				color: 0xFFD819, // yellow
+				boilingPoint: 177.0,
+				onsetTime: 0
+			},
+			{
+				name: 'gamma-Terpinene',
+				color: 0xA7CF58, // light green
+				boilingPoint: NaN,
+				onsetTime: 0
+			},
+			{
+				name: 'alpha-Pinene',
+				color: 0x68CF55, // green
+				boilingPoint: 156.0,
+				onsetTime: 0
+			},
+			{
+				name: 'alpha-Terpinene',
+				color: 0x379767, // darker green
+				boilingPoint: NaN,
+				onsetTime: 0
+			},
+			{
+				name: 'beta-Pinene',
+				color: 0x008647, // darkest green
+				boilingPoint: NaN,
+				onsetTime: 0
+			},
+			{
+				name: 'Camphene',
+				color: 0x64A7B7, // grey blue
+				boilingPoint: NaN,
+				onsetTime: 0
+			},
+			{
+				name: 'alpha-Humulene',
+				color: 0x009DE5, // mid blue
+				boilingPoint: NaN,
+				onsetTime: 0
+			},
+			{
+				name: 'beta-Caryophyllene',
+				color: 0x4667CA, // dark blue
+				boilingPoint: 119.0,
+				onsetTime: 0
+			},
+			{
+				name: 'Linalool',
+				color: 0x9366F1, // violet
+				boilingPoint: 198.0,
+				onsetTime: 0
+			},
+			{
+				name: 'Caryophyllene Oxide',
+				color: 0x510F3A, // dark purple
+				boilingPoint: NaN,
+				onsetTime: 0
+			},
+			{
+				name: 'beta-Myrcene',
+				color: 0x9E2576, // purple
+				boilingPoint: 167.0,
+				onsetTime: 0
+			},
+			{
+				name: 'cis-Nerolidol',
+				color: 0xC7C7CC, // gray
+				boilingPoint: NaN,
+				onsetTime: 0
+			},
+			{
+				name: 'trans-Nerolidol',
+				color: 0xC7C7CC, // gray
+				boilingPoint: NaN,
+				onsetTime: 0
+			},
+			{
+				name: 'trans-Nerolidol 1',
+				color: 0xC7C7CC, // gray
+				boilingPoint: NaN,
+				onsetTime: 0
+			},
+			{
+				name: 'trans-Nerolidol 2',
+				color: 0xC7C7CC, // gray
+				boilingPoint: NaN,
+				onsetTime: 0
+			},
+			{
+				name: 'trans-Ocimene',
+				color: 0xC7C7CC, // gray
+				boilingPoint: NaN,
+				onsetTime: 0
+			},
+			{
+				name: 'Eucalyptol',
+				color: 0xC7C7CC, // gray
+				boilingPoint: NaN,
+				onsetTime: 0
+			},
+			{
+				name: 'Geraniol',
+				color: 0xC7C7CC, // gray
+				boilingPoint: NaN,
+				onsetTime: 0
+			},
+			{
+				name: 'Guaiol',
+				color: 0xC7C7CC, // gray
+				boilingPoint: NaN,
+				onsetTime: 0
+			},
+			{
+				name: 'Isopulegol',
+				color: 0xC7C7CC, // gray
+				boilingPoint: NaN,
+				onsetTime: 0
+			},
+			{
+				name: 'Ocimene',
+				color: 0xC7C7CC, // gray
+				boilingPoint: NaN,
+				onsetTime: 0
+			},
+			{
+				name: 'alpha-Bisabolol',
+				color: 0xC7C7CC, // gray
+				boilingPoint: NaN,
+				onsetTime: 0
+			},
+			{
+				name: 'p-Cymene',
+				color: 0xC7C7CC, // gray
+				boilingPoint: 177.0,
+				onsetTime: 0
+			}
+		];
+		// Hi there fellow code enthusiast!
+		// You can change those values directly below, but please don't touch the others.
+		var greyedOutColor = "#d9d9d9";
+		var maxGraphPercentage = 1;
+		// That's it!
+
+		var elem_pagetitle = document.getElementById("title");
+		var elem_pageogtitle = document.getElementById("ogtitle");
+		var elem_form = document.getElementById("searchform");
+		var elem_databaseList = document.getElementById("databases");
+		var elem_sampleTypes = document.getElementById("sampleTypes");
+		var elem_resultsTable = document.getElementById("results");
+
+		var sampleTypes = [];
+		var database_imports = 0;
+
+		function changeHandler(files) {
+			for (let i = 0, file; file = files[i]; i++) {
+				if (file.type!="application/json") {
+					continue;
+				}
+				let reader = new FileReader();
+				reader.onload = function(event) {
+					let newDatabaseString = event.target.result;
+					if (newDatabaseString.startsWith("databasesContainer=")) {
+						newDatabaseString = newDatabaseString.substr(19);
+					}
+					let newDatabasesContainer = JSON.parse(newDatabaseString);
+					database_imports++;
+					for (const databaseName of Object.keys(newDatabasesContainer.databases)) {
+						addDatabaseItem("import"+database_imports.toString()+"_"+databaseName, "Imported: "+databaseName);
+						databasesContainer.databases["import"+database_imports.toString()+"_"+databaseName] = newDatabasesContainer.databases[databaseName];
+
+						// sample type list
+						Object.keys(newDatabasesContainer.databases[databaseName]).forEach(function(newSampleType){
+							addSampletype(newSampleType);
+						})
+
+					}
+				}
+				reader.readAsText(file);
+			}
+			return false;
+		}
+		function addDatabaseItem(identifier, label) {
+			let databaseListItem = document.createElement("li");
+			let databaseInput = document.createElement("input");
+			let databaseLabel = document.createElement("label");
+			databaseInput.type = "checkbox";
+			databaseInput.name = "database";
+			databaseInput.id = "database_" + identifier;
+			databaseInput.value = identifier;
+			databaseListItem.appendChild(databaseInput);
+			databaseLabel.htmlFor = "database_" + identifier;
+			databaseLabel.innerText = label;
+			databaseListItem.appendChild(databaseLabel);
+			elem_databaseList.appendChild(databaseListItem);
+		}
+		function addSampletype(sampleType) {
+			if (!sampleTypes.includes(sampleType)) {
+				let li = document.createElement("li");
+				let input = document.createElement("input");
+				let label = document.createElement("label");
+				sampleTypes.push(sampleType);
+				input.type = "checkbox";
+				input.name = "type";
+				input.id = "type_"+sampleType;
+				input.value = sampleType;
+				li.appendChild(input);
+				label.htmlFor = "type_"+sampleType;
+				label.innerText = sampleType;
+				li.appendChild(label);
+				elem_sampleTypes.appendChild(li);
+			}
+		}
+		function hexColor(hexNumber) {
+			return hexNumber.toString(16).padStart(7,'#000000');
+		}
+		function rgbaColor(hexNumber, alpha=1) {
+			let hex = hexNumber.toString(16).padStart(6,'000000');
+			let red = parseInt(hex.slice(0,2), 16);
+			let green = parseInt(hex.slice(2,4), 16);
+			let blue = parseInt(hex.slice(4,6), 16);
+			return "rgba("+red+", "+green+", "+blue+", "+alpha+")";
+		}
+		function linearGradient(rawcolor, percentage, transparency) {
+			let endColor = rgbaColor(rawcolor, transparency);
+			return "linear-gradient(to right, "+endColor+", "+endColor+" "+percentage+"%, rgba(0,0,0,0) "+percentage+"%)";
+		}
+		function updateTypeCheckboxes() {
+			let anyChecked = false;
+			let unprocessedIndex = -1;
+			elem_form.type.forEach(function(typeElem,typeIndex){
+				if (typeElem.checked) {
+					anyChecked = true;
+				}
+				if (typeElem.value == "Unprocessed") {
+					unprocessedIndex = typeIndex;
+				}
+			})
+			if (!anyChecked && unprocessedIndex!=-1) {
+				elem_form.type[unprocessedIndex].checked = true;
+			};
+			resetResults();
+		}
+		function updateDatabaseCheckboxes() {
+			let anyChecked = false;
+			let psilabsIndex = -1;
+			elem_form.database.forEach(function(databaseElem,databaseIndex){
+				if (databaseElem.checked) {
+					anyChecked = true;
+				}
+				if (databaseElem.value == "Psilabs") {
+					psilabsIndex = databaseIndex;
+				}
+			})
+			if (!anyChecked && psilabsIndex!=-1) {
+				elem_form.database[psilabsIndex].checked = true;
+			};
+			resetResults();
+		}
+		function toFixed(stringNumber, decimalPlaces) {
+			let result = stringNumber.toFixed(decimalPlaces);
+			let zeroMask = (0.0).toFixed(decimalPlaces);
+			if (result == "-"+zeroMask) {
+				return zeroMask
+			} else {
+				return result
+			}
+		}
+		function resetResults() {
+			elem_pagetitle.text = "StrainFinder";
+			elem_pageogtitle.content = "StrainFinder";
+			elem_resultsTable.caption.innerText = "";
+			elem_resultsTable.tBodies[0].innerHTML = "";
+			elem_resultsTable.tHead.children[0].innerHTML = "";
+		}
+		function sortTable(event) {
+			// sortType has to be same as terpene property
+			console.log("Hellou");
+			console.log(event);
+			// event.target.offsetParent
+			// event.target.parentElement
+			// event.target.parentNode
+
+			// take table
+			//   take each table body
+			//     resort rows according to data-average of this row
+
+		}
+		function load_sample_data(elem_form) {
+			let averages = {};
+			let resultsNum = 0;
+			let searchstring = elem_form.q.value.toLowerCase();
+			let newURL = new URL(window.location);
+			newURL.search = "";
+			if (elem_form.q.value != "") {
+				newURL.searchParams.append(elem_form.q.name, elem_form.q.value);
+			}
+			if (elem_form.exact.checked) {
+				newURL.searchParams.append(elem_form.exact.name, elem_form.exact.value);
+			}
+			elem_form.type.forEach(function(typeCheckbox){
+				if (typeCheckbox.checked) {
+					newURL.searchParams.append(typeCheckbox.name, typeCheckbox.value);
+				}
+			})
+			elem_form.database.forEach(function(databaseCheckbox){
+				if (databaseCheckbox.checked) {
+					newURL.searchParams.append(databaseCheckbox.name, databaseCheckbox.value);
+				}
+			})
+			window.history.pushState({},"",newURL);
+
+			resetResults();
+
+			elem_form.database.forEach(function(databaseCheckbox){
+				if (databaseCheckbox.checked) {
+					let database = databasesContainer.databases[databaseCheckbox.value];
+					elem_form.type.forEach(function(typeCheckbox){
+						if (typeCheckbox.checked && (typeCheckbox.value in database)) {
+							database[typeCheckbox.value].forEach(function(sample){
+								let matched = false;
+								if (elem_form.exact.checked) {
+									if (sample["Sample Name"].toLowerCase() == searchstring) {
+										matched = true
+									}
+								} else {
+									if (sample["Sample Name"].toLowerCase().includes(searchstring)) {
+										matched = true
+									}
+								}
+								if (matched) {
+									resultsNum ++;
+									terpenes.forEach(function(terpene){
+										let currentTerpeneValue = parseFloat(sample[terpene.name]) || 0.0;
+										if (terpene.name in averages) {
+											averages[terpene.name] += currentTerpeneValue;
+										} else {
+											averages[terpene.name] = currentTerpeneValue;
+										}
+									});
+								}
+							})
+						}
+					})
+				}
+			})
+
+			if (resultsNum == 0) {
+				elem_resultsTable.caption.innerText = "No results found";
+			} else {
+				elem_resultsTable.caption.innerText = "Search Results for '"+searchstring+"' ("+resultsNum+" Sample"+(resultsNum==1?"":"s")+")";
+
+				let row = elem_resultsTable.tHead.children[0];
+				var cell = document.createElement("td");
+				cell.innerText = "Terpene";
+				row.appendChild(cell);
+				var cell = document.createElement("td");
+				cell.innerText = "Graph";
+				cell.className = "graphcell";
+				// cell.addEventListener("click", sortTable);
+				row.appendChild(cell);
+				var cell = document.createElement("td");
+				cell.innerText = "%";
+				row.appendChild(cell);
+
+				let rowCandidates = [];
+				terpenes.forEach(function(terpene){
+					let average = averages[terpene.name]/resultsNum;
+					averages[terpene.name] = average;
+				})
+				terpenes.forEach(function(terpene,terpeneIndex){
+					let average = averages[terpene.name];
+
+					//table
+
+					let row = document.createElement("tr");
+					row.setAttribute("data-average", average);
+
+					////terpene name
+					var cell = document.createElement("td");
+					cell.innerText = terpene.name;
+					if (average <= 0.01) {
+						cell.style.color = greyedOutColor;
+					}
+					row.appendChild(cell);
+
+					// graph
+					// (overlay all datapoints of this terpene onto each other with a transparency set to 100%/resultsNum)
+					var cell = document.createElement("td");
+					cell.className = "graphcell";
+
+					if (average > 0.01) {
+						var graphColor = hexColor(terpene.color);
+					} else {
+						var graphColor = greyedOutColor;
+					}
+					let graphStartPoint = (50-((50*average)/maxGraphPercentage));
+					let graphEndPoint = (50+((50*average)/maxGraphPercentage));
+					let backgroundImage = "linear-gradient(to right,#0000,#0000 "
+											+graphStartPoint+"%,"
+											+graphColor+" "+graphStartPoint+"%,"
+											+graphColor+" "+graphEndPoint+"%,#0000 "
+											+graphEndPoint+"%)";
+					cell.style.backgroundImage = backgroundImage;
+
+					row.appendChild(cell);
+
+
+					// terpene amount
+					var cell = document.createElement("td");
+					var span = document.createElement("span");
+					span.innerText = toFixed(average, 2);
+					if (average <= 0.01) {
+						cell.style.color = greyedOutColor;
+					}
+					cell.appendChild(span);
+					row.appendChild(cell);
+
+					rowCandidates.push(row);
+
+				})
+				rowCandidates.sort((a,b)=>parseFloat(b.getAttribute("data-average")) - parseFloat(a.getAttribute("data-average")));
+				rowCandidates.forEach(function(row){
+					elem_resultsTable.tBodies[0].appendChild(row);
+				});
+			}
+			elem_pagetitle.text = "StrainFinder - '" + searchstring + "'";
+			elem_pageogtitle.content = "StrainFinder: '" + searchstring + "'";
+			return false;
+		}
+
+		// available databases list
+		for (const databaseName of Object.keys(databasesContainer.databases)) {
+			addDatabaseItem(databaseName, databaseName);
+			// sample type list
+			Object.keys(databasesContainer.databases[databaseName]).forEach(function(newSampleType){
+				addSampletype(newSampleType);
+			})
+		}
+		let parsedURL = new URL(window.location);
+		let doSearch = false;
+		for (let p of parsedURL.searchParams) {
+			switch (p[0]) {
+				case "q":
+					elem_form[p[0]].value = p[1];
+					doSearch = true;
+					break;
+				case "exact":
+					if (p[1]=="1") {
+						elem_form[p[0]].checked = true;
+						doSearch = true;
+					}
+					break;
+				case "type":
+				case "database":
+					elem_form[p[0]].forEach(function(checkbox){
+						if (checkbox.value == p[1]) {
+							checkbox.checked = true;
+							doSearch = true;
+						}
+					})
+					break;
+			}
+		}
+		updateDatabaseCheckboxes();
+		updateTypeCheckboxes();
+		if (doSearch) {
+			load_sample_data(elem_form);
+		}
+	</script>
+</html>
