@@ -9,6 +9,7 @@
 		<meta name="apple-mobile-web-app-title" content="StrainFinder" />
 		<link rel="icon" type="image/x-icon" href="favicon.ico" />
 		<link rel="manifest" href="manifest.webmanifest" />
+		<link rel="canonical" href="https://maxvalue.github.io/Terpene-Parser-Testing/" />
 		<meta property="og:url" id="ogurl" content="https://maxvalue.github.io/Terpene-Parser-Testing/" />
 		<meta property="og:title" id="ogtitle" content="StrainFinder" />
 		<meta property="og:description" content="Compare terpene profiles of cannabis strains using lab test data. Find out which compounds of your favourite strain affect your body." />
@@ -424,6 +425,9 @@
 		var maxGraphPercentage = 1;
 		// That's it!
 
+		var elem_pageCanonicalURL = document.querySelector("link[rel='canonical']");
+		var baseURL = elem_pageCanonicalURL.href;
+
 		var elem_pagetitle = document.getElementById("title");
 		var elem_pageogtitle = document.getElementById("ogtitle");
 		var elem_pageogurl = document.getElementById("ogurl");
@@ -549,7 +553,8 @@
 		}
 		function resetResults() {
 			elem_pagetitle.text = "StrainFinder";
-			elem_pageogurl.content = "https://maxvalue.github.io/Terpene-Parser-Testing/";//document.querySelector("link[rel='canonical']").href;
+			elem_pageCanonicalURL.href = baseURL;
+			elem_pageogurl.content = baseURL;
 			elem_pageogtitle.content = "StrainFinder";
 			elem_form.resultswrapper.innerHTML = "";
 		}
@@ -600,6 +605,7 @@
 			window.history.pushState({},"",newURL);
 
 			elem_pagetitle.text = "StrainFinder - '" + searchstring + "'";
+			elem_pageCanonicalURL.href = newURL;
 			elem_pageogurl.content = newURL;
 			elem_pageogtitle.content = "StrainFinder: '" + searchstring + "'";
 
