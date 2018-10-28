@@ -426,6 +426,7 @@
 
 		var elem_pagetitle = document.getElementById("title");
 		var elem_pageogtitle = document.getElementById("ogtitle");
+		var elem_pageogurl = document.getElementById("ogurl");
 		var elem_form = document.getElementById("searchform");
 		var elem_databaseList = document.getElementById("databases");
 		var elem_sampleTypes = document.getElementById("sampleTypes");
@@ -548,6 +549,7 @@
 		}
 		function resetResults() {
 			elem_pagetitle.text = "StrainFinder";
+			elem_pageogurl.content = document.querySelector("link[rel='canonical']").href;
 			elem_pageogtitle.content = "StrainFinder";
 			elem_form.resultswrapper.innerHTML = "";
 		}
@@ -598,6 +600,7 @@
 			window.history.pushState({},"",newURL);
 
 			elem_pagetitle.text = "StrainFinder - '" + searchstring + "'";
+			elem_pageogurl.content = newURL;
 			elem_pageogtitle.content = "StrainFinder: '" + searchstring + "'";
 
 			elem_form.database.forEach(function(databaseCheckbox){
