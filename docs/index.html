@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html manifest="cache.manifest">
+<html manifest="cache.manifest" lang="en">
 	<head>
 		<meta charset="utf-8" />
 		<title id="title">StrainFinder</title>
@@ -10,6 +10,7 @@
 		<link rel="icon" type="image/x-icon" href="favicon.ico" />
 		<link rel="manifest" href="manifest.webmanifest" />
 		<link rel="canonical" href="https://maxvalue.github.io/Terpene-Parser-Testing/" />
+		<meta name="Description" content="Compare terpene profiles of cannabis strains using lab test data. Find out which compounds of your favourite strain affect your body." />
 		<meta property="og:url" id="ogurl" content="https://maxvalue.github.io/Terpene-Parser-Testing/" />
 		<meta property="og:title" id="ogtitle" content="StrainFinder" />
 		<meta property="og:description" content="Compare terpene profiles of cannabis strains using lab test data. Find out which compounds of your favourite strain affect your body." />
@@ -175,22 +176,22 @@
 			<div class="segmented-control" onchange="sortTable()"
 				><label
 					><input type="radio" name="sortorder" value="default" checked=""
-					><div>Default</div
+					><div title="Sort by Default Order">Default</div
 				></label
 				><label
 					><input type="radio" name="sortorder" value="average"
-					><div>Average &#9660;</div
+					><div title="Sort by Average Descending">Average &#9660;</div
 				></label
 				><label
 					><input type="radio" name="sortorder" value="variance"
-					><div>Variance &sigma;&sup2; &#9660;</div
+					><div title="Sort by Variance Descending">Variance &sigma;&sup2; &#9660;</div
 				></label
 			></div>
 			<table id="results">
 				<caption></caption>
 				<thead>
 					<tr>
-						<td>Terpene</td><td class="graphcell">Graph</td><td>%</td><td>&sigma;&sup2;</td>
+						<td>Terpene</td><td class="graphcell" title="(Mapped to an 1% maximum)">Graph</td><td title="Average Percentage">%</td><td title="The square of the standard deviation (σ²)">&sigma;&sup2;</td>
 					</tr>
 				</thead>
 				<tbody>
